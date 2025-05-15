@@ -10,14 +10,33 @@ let gameSpeed = 5;
 let bestBrain = [];
 let bestDistance = 0;
 
+let editorMode = true;
+let camOffsetX = 0;
+let isDragging = false;
+let dragStartX;
+
+let fpsCounter = 0;
+let fpsTimer = 0;
+let actualFPS = 0;
+
+let genStartTime = 0;
+let lastGenDuration = 0;
+let avgSteps = 0;
+
 function setup() {
   createCanvas(800, 400);
   initLevel();
   initPopulation();
+  fpsTimer = millis();
 }
 
 function draw() {
   background(30);
+
+  if (editorMode) {
+    drawEditor();
+    return;
+  }
 
   let allDead = true;
   let cameraX = 0;
@@ -37,7 +56,6 @@ function draw() {
   drawGround();
   for (let b of blocks) b.show();
   for (let s of spikes) s.show();
-
   for (let p of players) p.show();
 
   pop();
@@ -45,31 +63,92 @@ function draw() {
   fill(255);
   textSize(16);
   text(`Gen: ${generation}`, 10, 20);
-  text(`Best: ${bestDistance}`, 10, 40);
+  text(`Best: ${nf(bestDistance, 1, 0)}`, 10, 40);
+  text(`Presiona 'E' para editar nivel`, 10, 60);
+
+  fpsCounter++;
+  if (millis() - fpsTimer > 1000) {
+    actualFPS = fpsCounter;
+    fpsCounter = 0;
+    fpsTimer = millis();
+  }
+
+  text(`FPS: ${actualFPS}`, 10, 80);
+  text(`Gen Time: ${nf(lastGenDuration / 1000, 1, 2)}s`, 10, 100);
+  text(`Avg Steps: ${nf(avgSteps, 1, 0)}`, 10, 120);
 
   if (allDead) nextGeneration();
+}
+
+function drawEditor() {
+  background(50);
+  push();
+  translate(-camOffsetX, 0);
+  drawGround();
+  for (let b of blocks) b.show();
+  for (let s of spikes) s.show();
+  pop();
+
+  fill(255);
+  textSize(16);
+  text("Editor de nivel (Click izq = bloque, Click der = spike)", 10, 20);
+  text("Arrastra para mover el nivel", 10, 40);
+  text("Presiona 'E' para iniciar simulación", 10, 60);
+  text("Presiona 'S' para guardar nivel", 10, 80);
+}
+
+function mousePressed() {
+  if (!editorMode) return;
+
+  if (mouseButton === CENTER) return false;
+
+  isDragging = true;
+  dragStartX = mouseX;
+  return false;
+}
+
+function mouseReleased() {
+  isDragging = false;
+
+  if (!editorMode) return;
+
+  let gridX = floor((mouseX + camOffsetX) / 40) * 40;
+  let gridY = floor(mouseY / 40) * 40;
+
+  if (mouseButton === LEFT) {
+    blocks.push(new Block(gridX, gridY));
+  } else if (mouseButton === RIGHT) {
+    spikes.push(new Spike(gridX, gridY));
+  }
+}
+
+function mouseDragged() {
+  if (editorMode && isDragging) {
+    let dx = pmouseX - mouseX;
+    camOffsetX = constrain(camOffsetX + dx, 0, levelLength - width);
+  }
+}
+
+function keyPressed() {
+  if (key === 'E') {
+    editorMode = !editorMode;
+    if (!editorMode) initPopulation();
+  }
+
+  if (key === 'S' && editorMode) {
+    console.log("=== BLOQUES ===");
+    for (let b of blocks) console.log(`blocks.push(new Block(${b.x}, ${b.y}));`);
+    console.log("=== SPIKES ===");
+    for (let s of spikes) console.log(`spikes.push(new Spike(${s.x}, ${s.y}));`);
+  }
 }
 
 function initLevel() {
   blocks = [];
   spikes = [];
-  let spikePositions = [400, 600, 800, 1000, 1040, 1300, 1500, 1540, 1600, 1800];
-
   for (let x = 0; x < levelLength; x += 40) {
     blocks.push(new Block(x, height - 40));
   }
-
-  for (let x of spikePositions) {
-    spikes.push(new Spike(x, height - 60));
-  }
-
-  // Plataformas
-  blocks.push(new Block(700, height - 80));
-  blocks.push(new Block(740, height - 80));
-  blocks.push(new Block(1300, height - 80));
-  blocks.push(new Block(1340, height - 80));
-  blocks.push(new Block(1600, height - 120));
-  blocks.push(new Block(1640, height - 120));
 }
 
 function drawGround() {
@@ -81,6 +160,7 @@ function drawGround() {
 function initPopulation() {
   players = [];
   brains = [];
+  genStartTime = millis();
 
   for (let i = 0; i < populationSize; i++) {
     let brain = bestBrain.length > 0 ? mutate([...bestBrain]) : [];
@@ -106,6 +186,13 @@ function nextGeneration() {
   }
 
   generation++;
+  lastGenDuration = millis() - genStartTime;
+  let totalSteps = 0;
+  for (let p of players) totalSteps += p.step;
+  avgSteps = totalSteps / players.length;
+
+  console.log(`Gen ${generation} | Time: ${lastGenDuration}ms | Avg Steps: ${avgSteps} | FPS: ${actualFPS}`);
+
   initPopulation();
 }
 
@@ -184,9 +271,7 @@ class Player {
     }
 
     for (let s of spikes) {
-      if (s.hits(this)) {
-        this.alive = false;
-      }
+      if (s.hits(this)) this.alive = false;
     }
 
     if (this.y > height) this.alive = false;
