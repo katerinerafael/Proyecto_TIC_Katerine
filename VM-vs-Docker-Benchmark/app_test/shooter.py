@@ -94,3 +94,8 @@ while True:
     average_fps = clock.get_fps()
     with open("fps_log.txt", "w") as f:
         f.write(f"{average_fps}\n")
+
+        # Al final del loop o antes de salir
+    with open("resultados/vm_fps.csv", "a") as f:
+        f.write(f"{fps:.2f}\n")
+
