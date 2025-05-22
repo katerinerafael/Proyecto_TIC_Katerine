@@ -87,7 +87,7 @@ Los resultados indican diferencias claras entre ambos entornos:
   - Emulación de sistemas operativos completos.
 
 > 📚 Para más detalles técnicos y visualizaciones, consulta el informe completo:  
-[Informe PDF](https://drive.google.com/file/d/1QJmQJJcsIePSN5DeEUffXoFHTAH3rIt-/view?usp=sharing)
+[Informe PDF]([https://drive.google.com/file/d/1QJmQJJcsIePSN5DeEUffXoFHTAH3rIt-/view?usp=sharing](https://docs.google.com/document/d/1qOZyaTSgXH7RfiJsBEsQH4FRpacJ8OQ31AOqG6OaHc8/edit?usp=sharing))
 
 ---
 
