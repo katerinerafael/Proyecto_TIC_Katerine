@@ -1,4 +1,3 @@
-// main.go
 package main
 
 import (
@@ -27,7 +26,7 @@ func main() {
     var cpuUsos, ramUsos, tiempos []float64
 
     fmt.Println("Inicio del monitoreo...")
-    for i := 0; i < 10; i++ {
+    for i := 0; i < 40; i++ {
         start := time.Now()
 
         cpuPorcentaje, _ := cpu.Percent(0, false)
@@ -45,7 +44,7 @@ func main() {
         fmt.Printf("Iteración %d - CPU: %.2f%%, RAM: %.2f%%, Tiempo: %.2fs\n",
             i, cpuPorcentaje[0], memInfo.UsedPercent, duracion)
     }
-    
+
     guardarDatos("cpu", cpuUsos)
     guardarDatos("ram", ramUsos)
     guardarDatos("tiempo", tiempos)
