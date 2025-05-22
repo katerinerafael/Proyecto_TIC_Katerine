@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -10,6 +11,7 @@ import (
 )
 
 func guardarDatos(nombre string, datos []float64) {
+    os.MkdirAll("datos", os.ModePerm)
     f, err := os.Create("datos/" + nombre + ".csv")
     if err != nil {
         panic(err)
@@ -43,11 +45,10 @@ func main() {
         fmt.Printf("Iteración %d - CPU: %.2f%%, RAM: %.2f%%, Tiempo: %.2fs\n",
             i, cpuPorcentaje[0], memInfo.UsedPercent, duracion)
     }
-
-    os.MkdirAll("datos", os.ModePerm)
+    
     guardarDatos("cpu", cpuUsos)
     guardarDatos("ram", ramUsos)
     guardarDatos("tiempo", tiempos)
 
-    fmt.Println("Datos guardados en la carpeta /datos/")
+    fmt.Println("Datos guardados en la carpeta datos/")
 }

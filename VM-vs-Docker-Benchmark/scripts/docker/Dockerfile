@@ -1,22 +1,23 @@
-# Usamos una imagen base de Python
-FROM python:3.9-slim
+# Usa imagen oficial de Go
+FROM golang:1.21
 
-# Instalamos las dependencias necesarias
-RUN apt-get update && apt-get install -y \
-    procps \
+# Instala dependencias
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Establecemos el directorio de trabajo
+# Instala matplotlib y pandas
+RUN pip3 install pandas matplotlib
+
+# Instala gopsutil para monitoreo
+RUN go install github.com/shirou/gopsutil/v3@latest
+
+# Copia archivos
 WORKDIR /app
+COPY main.go .
 
-# Copiamos los archivos del proyecto
-COPY . /app
+# Compila el binario
+RUN go mod init benchmark && go mod tidy && go build -o benchmark
 
-# Instalamos las dependencias de Python
-RUN pip install -r requirements.txt
-
-# Exponemos el puerto (si es necesario)
-EXPOSE 8080
-
-# Comando para ejecutar el script principal o el juego
-CMD ["python3", "shooter.py"]
+# Ejecuta el binario al correr el contenedor
+CMD ["./benchmark"]
